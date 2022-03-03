@@ -163,11 +163,27 @@ app.post("/noveladd", (req, res) => {
   const content = req.body.content;
   const title = req.body.title;
   const id = req.body.id;
-  const dateOfUpdate = Date.now();
+  let today = new Date();
+  let year = String(today.getFullYear());
+  let month = String(today.getMonth() + 1).padStart(2, 0);
+  let date = String(today.getDate()).padStart(2, 0);
+  let hours = String(today.getHours()).padStart(2, 0);
+  let minutes = String(today.getMinutes()).padStart(2, 0);
+  let sec = String(today.getSeconds()).padStart(2, 0);
+  let millisec = String(today.getMilliseconds()).padStart(3, 0);
+  console.log(millisec);
+  const day = year + month + date + hours + minutes + sec + millisec;
+  const dateOfUpdate = Number(day);
   const sql =
     "insert into `?` (id,subtitle,content,dateOfUpdate) values (?,?,?,?)";
   db.query(sql, [title, id, subtitle, content, dateOfUpdate], (err, result) => {
-    res.send(true);
+    db.query(
+      "update novels set recentupdate = ? where title = ?",
+      [dateOfUpdate, title],
+      (err, result2) => {
+        res.send(true);
+      }
+    );
   });
 });
 
