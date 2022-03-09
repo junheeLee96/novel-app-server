@@ -76,6 +76,7 @@ app.post("/api/create", (req, res) => {
   const plot = req.body.plot;
   const id = req.body.id;
   const displayName = req.body.displayName;
+  let disName;
   var image;
   if (req.body.image) {
     image = req.body.image;
@@ -84,11 +85,6 @@ app.post("/api/create", (req, res) => {
   }
   const createsql =
     "create table `?` (idx int auto_increment primary key, id varchar(50), subtitle varchar(50), content TEXT, dateOfUpdate varchar(200))";
-  /*
-  db.query("select displayName from user where id = ?", [id], (err, result) => {
-    const disName = result[0].displayName;
-  });*/
-
   db.query(
     "select * from novels where title = ?",
     [title],
@@ -98,9 +94,10 @@ app.post("/api/create", (req, res) => {
           "select displayName from user where id = ?",
           [id],
           (err, result) => {
-            const disName = result[0].displayName;
+            disName = result[0].displayName;
+            console.log(disName);
             db.query(
-              "insert into novels (title, plot, id, displayName,image) values (?,?,?, ?,?)",
+              "insert into novels (title, plot, id , displayName, image) values (?,?,?,?,?)",
               [title, plot, id, disName, image],
               (err, insresult) => {
                 db.query(createsql, [title], (err, createresult) => {
@@ -115,26 +112,6 @@ app.post("/api/create", (req, res) => {
       }
     }
   );
-
-  /*db.query(
-    "select * from novels where title = ?",
-    [title],
-    (err, selresult) => {
-      if (selresult.length < 1) {
-        db.query(
-          "insert into novels (title, plot, id, displayName,image) values (?,?,?, ?,?)",
-          [title, plot, id, displayName, image],
-          (err, insresult) => {
-            db.query(createsql, [title], (err, createresult) => {
-              res.send(false);
-            });
-          }
-        );
-      } else {
-        res.send(true);
-      }
-    }
-  );*/
 });
 
 app.get("/api/novelabout", (req, res) => {
@@ -171,7 +148,6 @@ app.post("/noveladd", (req, res) => {
   let minutes = String(today.getMinutes()).padStart(2, 0);
   let sec = String(today.getSeconds()).padStart(2, 0);
   let millisec = String(today.getMilliseconds()).padStart(3, 0);
-  console.log(millisec);
   const day = year + month + date + hours + minutes + sec + millisec;
   const dateOfUpdate = Number(day);
   const sql =
@@ -227,7 +203,7 @@ app.post("/novelupdate", (req, res) => {
 app.get("/api/novelshowcontent", (req, res) => {
   const title = req.query[0];
   const dateOfUpdate = req.query[1];
-  const sql = "select content from `?` where dateOfUpdate = ?";
+  const sql = "select idx,content from `?` where dateOfUpdate = ?";
   db.query(sql, [title, dateOfUpdate], (err, result) => {
     res.send(result);
   });
@@ -258,6 +234,27 @@ app.post("/userinfoupdate", (req, res) => {
       );
     } else {
       res.send(false);
+    }
+  });
+});
+
+app.get("/api/recentlynovels", (req, res) => {
+  const sql =
+    "select title,plot,image from novels where recentupdate is not null order by recentupdate desc limit 5;";
+  db.query(sql, (err, result) => {
+    res.send(result);
+  });
+});
+
+app.post("/prev", (req, res) => {
+  const title = req.body.title;
+  const idx = req.body.idx - 1;
+  const sql = "select content, dateOfUpdate from `?` where idx = ?";
+  db.query(sql, [title, idx], (err, result) => {
+    if (result) {
+      res.send(result);
+    } else {
+      console.log(false);
     }
   });
 });
