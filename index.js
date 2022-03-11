@@ -204,8 +204,12 @@ app.get("/api/novelshowcontent", (req, res) => {
   const title = req.query[0];
   const dateOfUpdate = req.query[1];
   const sql = "select idx,content from `?` where dateOfUpdate = ?";
+  const sql2 = "select idx from `?` order by idx desc limit 1";
   db.query(sql, [title, dateOfUpdate], (err, result) => {
-    res.send(result);
+    db.query(sql2, [title], (err, result2) => {
+      const data = [result, result2];
+      res.send(data);
+    });
   });
 });
 
@@ -247,14 +251,23 @@ app.get("/api/recentlynovels", (req, res) => {
 });
 
 app.post("/prev", (req, res) => {
-  const title = req.body.title;
-  const idx = req.body.idx - 1;
-  const sql = "select content, dateOfUpdate from `?` where idx = ?";
+  const idx = req.body.SendData[1] - 1;
+  const title = req.body.SendData[0];
+  const sql = "select dateOfUpdate from `?` where idx = ?";
   db.query(sql, [title, idx], (err, result) => {
     if (result) {
       res.send(result);
     } else {
-      console.log(false);
+      res.send(false);
     }
+  });
+});
+
+app.post("/next", (req, res) => {
+  const title = req.body.SendData[0];
+  const idx = req.body.SendData[1] + 1;
+  const sql = "select dateOfUpdate from `?` where idx = ?";
+  db.query(sql, [title, idx], (err, result) => {
+    res.send(result);
   });
 });
