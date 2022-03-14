@@ -7,18 +7,21 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const router = express.Router();
 const path = require("path");
-
+const dotenv = require("dotenv");
+dotenv.config();
 /*const upload = multer({
   dest: "uploads/",
   limits: { fileSize: 5 * 1024 * 1024 },
 });*/
 
 const db = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "cherrys6s~",
-  database: "example2",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PW,
+  database: process.env.DB_NAME,
 });
+
+console.log(process.env.DB_HOST);
 
 app.use(cors());
 app.use(express.json());
@@ -49,7 +52,7 @@ app.post("/upload", upload.single("img"), function (req, res, next) {
   });
 });
 //************** */
-app.post("/api/insert", (req, res) => {
+app.post("/insert", (req, res) => {
   const id = req.body.id;
   const disN = req.body.displayName;
   const sq = "insert into user (id,displayName) values (?,?)";
@@ -64,14 +67,14 @@ app.post("/api/insert", (req, res) => {
   });
 });
 
-app.get("/api/getnovels", (req, res) => {
+app.get("/getnovels", (req, res) => {
   const sql = "select * from novels";
   db.query(sql, (err, result) => {
     res.send(result);
   });
 });
 
-app.post("/api/create", (req, res) => {
+app.post("/create", (req, res) => {
   const title = req.body.title;
   const plot = req.body.plot;
   const id = req.body.id;
@@ -114,7 +117,7 @@ app.post("/api/create", (req, res) => {
   );
 });
 
-app.get("/api/novelabout", (req, res) => {
+app.get("/novelabout", (req, res) => {
   const title = req.query[0];
   db.query("select subtitle,dateOfUpdate from `?`", [title], (err, result1) => {
     db.query(
@@ -172,7 +175,7 @@ app.post("/api/deletenovelsub", (req, res) => {
   });
 });
 
-app.get("/api/novelupdate", (req, res) => {
+app.get("/novelupdate", (req, res) => {
   const title = req.query[0];
   const dateOfUpdate = req.query[1];
   const sql = "select subtitle,content from `?` where dateOfUpdate = ?";
@@ -200,7 +203,7 @@ app.post("/novelupdate", (req, res) => {
   );
 });
 
-app.get("/api/novelshowcontent", (req, res) => {
+app.get("/novelshowcontent", (req, res) => {
   const title = req.query[0];
   const dateOfUpdate = req.query[1];
   const sql = "select idx,content from `?` where dateOfUpdate = ?";
@@ -213,7 +216,7 @@ app.get("/api/novelshowcontent", (req, res) => {
   });
 });
 
-app.get("/api/userinfo", (req, res) => {
+app.get("/userinfo", (req, res) => {
   const id = req.query[0];
   const sql = "select displayName from user where id = ?";
   db.query(sql, [id], (err, result) => {
@@ -242,7 +245,7 @@ app.post("/userinfoupdate", (req, res) => {
   });
 });
 
-app.get("/api/recentlynovels", (req, res) => {
+app.get("/recentlynovels", (req, res) => {
   const sql =
     "select title,plot,image from novels where recentupdate is not null order by recentupdate desc limit 5;";
   db.query(sql, (err, result) => {
