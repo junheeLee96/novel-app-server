@@ -14,6 +14,8 @@ dotenv.config();
   limits: { fileSize: 5 * 1024 * 1024 },
 });*/
 
+app.use(express.static(path.resolve(__dirname, "./client/build")));
+
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
